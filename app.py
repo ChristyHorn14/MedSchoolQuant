@@ -84,7 +84,6 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     ], style={'display': 'grid', 'grid-template-columns': 'repeat(auto-fit, minmax(300px, 1fr))', 'gap': '20px'})
 ])
 
-
 # Define callback to update the graphs based on dropdown selections
 @app.callback(
     [Output('time-graph', 'figure'),
@@ -138,7 +137,8 @@ def update_graph(selected_year_label, additional_filter):
 
     return time_graph, anki_graph, volunteering_graph, research_graph, other_graph, self_study_graph, f'Total Time: {total_sum:.2f} hours'
 
+# This is for Gunicorn compatibility
+server = app.server
 
-# Run the app
 if __name__ == '__main__':
     app.run_server(debug=True)
