@@ -7,7 +7,7 @@ import plotly.express as px
 df = pd.read_csv('MedSchool.csv')
 
 # Convert time columns from minutes to hours
-time_columns = ['Sum', 'Anki', 'Volunteering', 'Research', 'Other', 'Self-Study']
+time_columns = ['Sum', 'Class', 'Lab', 'Anki', 'Volunteering', 'Research', 'Other', 'Self-Study']
 df[time_columns] /= 60  # Convert minutes to hours
 
 # Initialize the Dash app
@@ -76,12 +76,14 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
 
     # Graphs for specific categories
     html.Div([
-        dcc.Graph(id='anki-graph', config={'displayModeBar': False}),
-        dcc.Graph(id='volunteering-graph', config={'displayModeBar': False}),
-        dcc.Graph(id='research-graph', config={'displayModeBar': False}),
-        dcc.Graph(id='other-graph', config={'displayModeBar': False}),
-        dcc.Graph(id='self-study-graph', config={'displayModeBar': False})
-    ], style={'display': 'grid', 'grid-template-columns': 'repeat(auto-fit, minmax(300px, 1fr))', 'gap': '20px'})
+        dcc.Graph(id='anki-graph', config={'displayModeBar': False}, style={'height': '40vh'}),
+        dcc.Graph(id='volunteering-graph', config={'displayModeBar': False}, style={'height': '40vh'}),
+        dcc.Graph(id='research-graph', config={'displayModeBar': False}, style={'height': '40vh'}),
+        dcc.Graph(id='other-graph', config={'displayModeBar': False}, style={'height': '40vh'}),
+        dcc.Graph(id='self-study-graph', config={'displayModeBar': False}, style={'height': '40vh'}),
+        dcc.Graph(id='class-graph', config={'displayModeBar': False}, style={'height': '40vh'}),
+        dcc.Graph(id='lab-graph', config={'displayModeBar': False}, style={'height': '40vh'})
+    ], style={'display': 'grid', 'grid-template-columns': 'repeat(auto-fit, minmax(300px, 1fr))', 'gap': '20px', 'margin': '0 auto'})
 ])
 
 # Define callback to update the graphs based on dropdown selections
@@ -92,6 +94,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
      Output('research-graph', 'figure'),
      Output('other-graph', 'figure'),
      Output('self-study-graph', 'figure'),
+     Output('class-graph', 'figure'),
+     Output('lab-graph', 'figure'),
      Output('total-sum', 'children')],
     [Input('year-label-dropdown', 'value'),
      Input('additional-filter-dropdown', 'value')]
@@ -122,9 +126,11 @@ def update_graph(selected_year_label, additional_filter):
     research_graph = px.bar(filtered_df.groupby(additional_filter)['Research'].sum().reset_index(), x=additional_filter, y='Research', title=f'Time Spent on Research in Hours')
     other_graph = px.bar(filtered_df.groupby(additional_filter)['Other'].sum().reset_index(), x=additional_filter, y='Other', title=f'Time Spent on Other Activities in Hours')
     self_study_graph = px.bar(filtered_df.groupby(additional_filter)['Self-Study'].sum().reset_index(), x=additional_filter, y='Self-Study', title=f'Time Spent on Self-Study in Hours')
+    class_graph = px.bar(filtered_df.groupby(additional_filter)['Class'].sum().reset_index(), x=additional_filter, y='Class', title=f'Time Spent in Class in Hours')
+    lab_graph = px.bar(filtered_df.groupby(additional_filter)['Lab'].sum().reset_index(), x=additional_filter, y='Lab', title=f'Time Spent in Lab in Hours')
 
     # Assign colors using a color scale
-    for graph in [time_graph, anki_graph, volunteering_graph, research_graph, other_graph, self_study_graph]:
+    for graph in [time_graph, anki_graph, volunteering_graph, research_graph, other_graph, self_study_graph, class_graph, lab_graph]:
         graph.update_traces(marker_color=color_scale)
 
     # Add axis labels to graphs
@@ -134,12 +140,14 @@ def update_graph(selected_year_label, additional_filter):
     research_graph.update_layout(xaxis_title=additional_filter, yaxis_title='Time (Hours)')
     other_graph.update_layout(xaxis_title=additional_filter, yaxis_title='Time (Hours)')
     self_study_graph.update_layout(xaxis_title=additional_filter, yaxis_title='Time (Hours)')
+    class_graph.update_layout(xaxis_title=additional_filter, yaxis_title='Time (Hours)')
+    lab_graph.update_layout(xaxis_title=additional_filter, yaxis_title='Time (Hours)')
 
     # Calculate date range based on additional filter
     start_date = filtered_df['Date'].min()
     end_date = filtered_df['Date'].max()
 
-    return time_graph, anki_graph, volunteering_graph, research_graph, other_graph, self_study_graph, f'Total Time: {total_sum:.2f} hours. Date Range: {start_date} to {end_date}'
+    return time_graph, anki_graph, volunteering_graph, research_graph, other_graph, self_study_graph, class_graph, lab_graph, f'Total Time: {total_sum:.2f} hours. Date Range: {start_date} to {end_date}'
 
 # This is for Gunicorn compatibility
 server = app.server
