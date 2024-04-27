@@ -137,5 +137,5 @@ def update_graph(selected_year_label, additional_filter):
 
     return time_graph, anki_graph, volunteering_graph, research_graph, other_graph, self_study_graph, f'Total Time: {total_sum:.2f} hours'
 
-# This is for Gunicorn compatibility
+# Define server for Gunicorn compatibility
 server = app.server
