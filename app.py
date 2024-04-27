@@ -109,12 +109,12 @@ def update_graph(selected_year_label, additional_filter):
 
     # Main graph showing time spent by additional filter
     if additional_filter == 'yearLabel':
-        time_graph = px.bar(filtered_df.groupby('yearLabel')['Sum'].sum().reset_index(), x='yearLabel', y='Sum', title=f'Time Spent by Year Label')
+        time_graph = px.bar(filtered_df.groupby('yearLabel')['Sum'].agg(['sum', 'count']).reset_index(), x='yearLabel', y='sum', text='count', title=f'Time Spent by Year Label')
     else:
-        time_graph = px.bar(filtered_df.groupby(additional_filter)['Sum'].sum().reset_index(), x=additional_filter, y='Sum', title=f'Time Spent by {additional_filter} in Hours')
+        time_graph = px.bar(filtered_df.groupby(additional_filter)['Sum'].agg(['sum', 'count']).reset_index(), x=additional_filter, y='sum', text='count', title=f'Time Spent by {additional_filter}')
 
-    # Add text annotations to each bar in the main graph
-    time_graph.update_traces(text=filtered_df.groupby(additional_filter)['Sum'].sum().reset_index()['Sum'].round(0).astype(int), textposition='inside')
+    # Add number of days in each bar as text
+    time_graph.update_traces(text=filtered_df.groupby(additional_filter)['Sum'].agg('mean').apply(lambda x: f'{x:.2f} hours/day').tolist(), textposition='inside')
 
     # Graphs for specific categories
     anki_graph = px.bar(filtered_df.groupby(additional_filter)['Anki'].sum().reset_index(), x=additional_filter, y='Anki', title=f'Time Spent on Anki in Hours')
@@ -135,7 +135,11 @@ def update_graph(selected_year_label, additional_filter):
     other_graph.update_layout(xaxis_title=additional_filter, yaxis_title='Time (Hours)')
     self_study_graph.update_layout(xaxis_title=additional_filter, yaxis_title='Time (Hours)')
 
-    return time_graph, anki_graph, volunteering_graph, research_graph, other_graph, self_study_graph, f'Total Time: {total_sum:.2f} hours'
+    # Calculate date range based on additional filter
+    start_date = filtered_df['Date'].min()
+    end_date = filtered_df['Date'].max()
 
-# Define server for Gunicorn compatibility
+    return time_graph, anki_graph, volunteering_graph, research_graph, other_graph, self_study_graph, f'Total Time: {total_sum:.2f} hours. Date Range: {start_date} to {end_date}'
+
+# This is for Gunicorn compatibility
 server = app.server
